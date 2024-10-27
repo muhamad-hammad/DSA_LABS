@@ -1456,8 +1456,6 @@ public:
     bool isEmpty() const {
         return front == nullptr;
     }
-    friend class TicketManagementSystem;
-    friend class TicketStack;
 };
 
 class TicketStack {
@@ -1504,8 +1502,6 @@ public:
         }
     }
 
-    friend class TicketManagementSystem;
-    friend class TicketQueue;
 };
 
 class TicketManagementSystem {
@@ -1526,19 +1522,8 @@ public:
     }
 
     void viewResolutionLog() {
-        cout << "Recent ticket resolution logs:" << endl;
-        TicketStack tempStack;
-        while (!resolutionLog.isEmpty()) {
-            Ticket *ticket = resolutionLog.pop();
-            ticket->displayTicket();
-            tempStack.push(ticket);
-        }
-        while (!tempStack.isEmpty()) {
-            resolutionLog.push(tempStack.pop());
-        }
+        resolutionLog.viewResolutionLog();
     }
-    friend class TicketQueue;
-    friend class TicketStack;
 };
 
 string sortingAlgorithm;
