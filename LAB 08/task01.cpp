@@ -72,11 +72,8 @@ class BinaryTree{
 
 int main(){
     BinaryTree tree;
-    int n,x;
-    cout << "Enter the number of nodes: " <<endl;
-    cin >> n;
+    int x, n=5;
     for(int i = 0; i < n; i++){
-        cout << "Enter the value of node " << i + 1 << ": ";
         x = i+1;
         tree.addNode(x, "Node " + to_string(i+1));
     }
