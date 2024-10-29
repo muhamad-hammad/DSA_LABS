@@ -77,7 +77,7 @@ int main(){
     cin >> n;
     for(int i = 0; i < n; i++){
         cout << "Enter the value of node " << i + 1 << ": ";
-        cin >> x;
+        x = i+1;
         tree.addNode(x, "Node " + to_string(i+1));
     }
 
