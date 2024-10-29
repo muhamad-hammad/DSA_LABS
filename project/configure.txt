@@ -1,0 +1,14 @@
+# Configuration for One-Stop Management System
+
+#priority mode used in default
+# Sorting algorithm to be used by default for tickets and agents
+# Options: BubbleSort, InsertionSort, SelectionSort, MergeSort, QuickSort
+sorting_algorithm=MergeSort
+
+# Searching algorithm to be used by default for ticket searches
+# Options: InterpolationSearch, BubbleSearch, LinearSearch
+searching_algorithm=InterpolationSearch
+
+# Threshold for switching between elementary and advanced sorts
+# For example, if there are fewer than this number of items, use elementary sort
+sort_threshold=10
