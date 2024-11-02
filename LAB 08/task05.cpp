@@ -1,23 +1,3 @@
-// Q5: Given two BST’s (Down Below) You are tasked to merge them together to form a new BST
-// the output of this will be 1 2 2 3 3 4 5 6 6 7 (You can visualize this by drawing the array to a tree
-// in your notebook).
-
-// BST1:    
-        //     5
-        //    / \
-        //   3   6
-        //  / \
-        // 2   4
-
-// BST2:
-        //     2
-        //    / \
-        //   1   3
-        //        \
-        //         7
-        //        /
-        //       6
-
 #include <iostream>
 #include <string>
 using namespace std;
@@ -25,19 +5,19 @@ using namespace std;
 class Node {
 public:
     int key;
-    string name;
+    int frequency;
     Node* leftChild;
     Node* rightChild;
 
-    Node(int key, string name) {
+    Node(int key, int frequency = 1) {
         this->key = key;
-        this->name = name;
-        this->leftChild = NULL;
-        this->rightChild = NULL;
+        this->frequency = frequency;
+        this->leftChild = nullptr;
+        this->rightChild = nullptr;
     }
 
-    string toString(int key) {
-        return name + " has the key " + to_string(key) + " \n";
+    string toString() {
+        return "Key: " + to_string(key) + ", Frequency: " + to_string(frequency) + "\n";
     }
 };
 
@@ -47,39 +27,29 @@ private:
 
 public:
     BinaryTree() {
-        root = NULL;
+        root = nullptr;
     }
 
-    void addNode(int key, string name) {
-        Node* newNode = new Node(key, name);
-        if (root == NULL) {
-            root = newNode;
-        } else {
-            Node* current = root;
-            Node* parent;
-            while (true) {
-                parent = current;
-                if (key < current->key) {
-                    current = current->leftChild;
-                    if (current == NULL) {
-                        parent->leftChild = newNode;
-                        return;
-                    }
-                } else {
-                    current = current->rightChild;
-                    if (current == NULL) {
-                        parent->rightChild = newNode;
-                        return;
-                    }
-                }
-            }
+    void addNode(int key, int frequency = 1) {
+        root = insert(root, key, frequency);
+    }
+
+    Node* insert(Node* node, int key, int frequency) {
+        if (node == nullptr) {
+            return new Node(key, frequency);
         }
+        if (key < node->key) {
+            node->leftChild = insert(node->leftChild, key, frequency);
+        } else if (key > node->key) {
+            node->rightChild = insert(node->rightChild, key, frequency);
+        }
+        return node;
     }
 
     void printTree(Node* node) {
-        if (node != NULL) {
+        if (node != nullptr) {
             printTree(node->leftChild);
-            cout << node->toString(node->key);
+            cout << node->toString();
             printTree(node->rightChild);
         }
     }
@@ -88,38 +58,64 @@ public:
         printTree(root);
     }
 
-    void inOrerTraversal(Node* node, int* arr, int& index) {
-        if (node != NULL) {
-            inOrerTraversal(node->leftChild, arr, index);
-            arr[index++] = node->key;
-            inOrerTraversal(node->rightChild, arr, index);
-        }
-    }
-
-    void inOrerTraversal(int* arr, int& index) {
-        index = 0;
-        inOrerTraversal(root, arr, index);
-    }
-
     Node* sortedArrayToBST(int* arr, int start, int end) {
         if (start > end) return nullptr;
+
         int mid = (start + end) / 2;
-        Node* node = new Node(arr[mid], "");
-        node->leftChild = sortedArrayToBST(arr, start, mid - 1);
-        node->rightChild = sortedArrayToBST(arr, mid + 1, end);
+        int currentKey = arr[mid];
+        int frequency = 1;
+
+        int leftIndex = mid - 1;
+        int rightIndex = mid + 1;
+
+        while (leftIndex >= start && arr[leftIndex] == currentKey) {
+            frequency++;
+            leftIndex--;
+        }
+
+        while (rightIndex <= end && arr[rightIndex] == currentKey) {
+            frequency++;
+            rightIndex++;
+        }
+
+        Node* node = new Node(currentKey, frequency);
+
+        node->leftChild = sortedArrayToBST(arr, start, leftIndex);
+        node->rightChild = sortedArrayToBST(arr, rightIndex, end);
+
         return node;
     }
 
     void buildFromSortedArray(int* arr, int n) {
         root = sortedArrayToBST(arr, 0, n - 1);
     }
+
+    void inOrderTraversal(int* arr, int& index) {
+        inOrderTraversalHelper(root, arr, index);
+    }
+
+private:
+    void inOrderTraversalHelper(Node* node, int* arr, int& index) {
+        if (node != nullptr) {
+            inOrderTraversalHelper(node->leftChild, arr, index);
+            arr[index++] = node->key;
+            inOrderTraversalHelper(node->rightChild, arr, index);
+        }
+    }
 };
+
+void printArray(int* arr, int size) {
+    for (int i = 0; i < size; i++) {
+        cout << arr[i] << " ";
+    }
+    cout << endl;
+}
 
 int* arrMerge(int* arr1, int* arr2, int size1, int size2) {
     int* arr = new int[size1 + size2];
     int index = 0, i = 0, j = 0;
     while (i < size1 && j < size2) {
-        if (arr1[i] < arr2[j]) {
+        if (arr1[i] <= arr2[j]) {
             arr[index++] = arr1[i++];
         } else {
             arr[index++] = arr2[j++];
@@ -132,20 +128,22 @@ int* arrMerge(int* arr1, int* arr2, int size1, int size2) {
 
 int main() {
     BinaryTree tree1;
-    tree1.addNode(5, "Node 1");
-    tree1.addNode(3, "Node 2");
-    tree1.addNode(6, "Node 3");
-    tree1.addNode(2, "Node 4");
-    tree1.addNode(4, "Node 5");
+    tree1.addNode(5);
+    tree1.addNode(3);
+    tree1.addNode(6);
+    tree1.addNode(2);
+    tree1.addNode(4);
+    cout << "Tree 1:\n";
     tree1.printTree();
     cout << endl;
 
     BinaryTree tree2;
-    tree2.addNode(2, "Node 6");
-    tree2.addNode(1, "Node 7");
-    tree2.addNode(3, "Node 8");
-    tree2.addNode(7, "Node 9");
-    tree2.addNode(6, "Node 10");
+    tree2.addNode(2);
+    tree2.addNode(1);
+    tree2.addNode(3);
+    tree2.addNode(7);
+    tree2.addNode(6);
+    cout << "Tree 2:\n";
     tree2.printTree();
     cout << endl;
 
@@ -155,14 +153,17 @@ int main() {
     int* arr2 = new int[size2];
     int index1 = 0, index2 = 0;
 
-    tree1.inOrerTraversal(arr1, index1);
-    tree2.inOrerTraversal(arr2, index2);
+    tree1.inOrderTraversal(arr1, index1);
+    tree2.inOrderTraversal(arr2, index2);
 
     int* mergedArr = arrMerge(arr1, arr2, index1, index2);
+    cout << "Merged array:\n";
+    printArray(mergedArr, index1 + index2);
 
-    BinaryTree tree3;
-    tree3.buildFromSortedArray(mergedArr, index1 + index2);
-    tree3.printTree();
+    BinaryTree mergedTree;
+    mergedTree.buildFromSortedArray(mergedArr, index1 + index2);
+    cout << "Merged BST with frequencies:\n";
+    mergedTree.printTree();
 
     delete[] arr1;
     delete[] arr2;
