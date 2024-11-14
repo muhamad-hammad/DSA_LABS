@@ -1,0 +1,68 @@
+#include<iostream>
+using namespace std;
+#define MAX = 1000;
+
+void minheapify(int arr[], int N, int i){
+    int largest = i;
+    int left = 2*i+1;
+    int right = 2*i+2;
+
+    if(left<N && arr[left] > arr[largest]){
+        largest = left;
+    }
+    if(right<N && arr[right] > arr[largest]){
+        largest = right;
+    }
+    if(largest!=i){
+        swap(arr[i], arr[largest]);
+        minheapify(arr, N, largest);
+    }
+}
+
+void buildHeap(int arr[], int N){
+    int startIndex = (N/2)-1;
+    for (int i = startIndex; i >= 0; i--)
+    {
+        minheapify(arr, N, i);
+    }
+    
+}
+
+void heapSort(int arr[], int N){
+    buildHeap(arr,N);
+    for (int i = N-1; i >= 0; i--)
+    {
+        swap(arr[0], arr[i]);
+        minheapify(arr, i, 0);
+    }
+
+}
+
+void Insert(int arr[], int &n, int value){
+    n++;
+    arr[n-1] = value;
+    minheapify(arr,n, n-1);
+}
+
+void Delete(int arr[], int &n){
+    int lastElement = arr[n-1];
+    arr[0] = lastElement;
+    n--;
+    minheapify(arr,n,0);
+}
+
+void printHeap(int arr[], int N){
+    for (int i = 0; i < N; i++)
+    {
+        cout << arr[i] << "\t" ;
+    }
+    
+}
+
+int main(){
+    int arr[] = {10,3,5,4,2};
+    int N = sizeof(arr)/sizeof(arr[0]);
+    buildHeap(arr,N);
+
+    printHeap(arr,N);
+}
