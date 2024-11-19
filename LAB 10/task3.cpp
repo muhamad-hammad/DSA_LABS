@@ -6,102 +6,81 @@
 // then subsequent nodes will get later priorities. Once the tree is built up delete the nodes
 // accordingly to the priority (Max to min) while also printing the order.
 
-
 #include <iostream>
+#include <cstdlib>
+#include <ctime>
 using namespace std;
 
-// Node structure to represent each element in the priority queue
-struct Node {
-    int data;
-    int priority;
-    Node* next;
+struct TaskNode {
+    string taskName;
+    int taskPriority;
+    TaskNode* nextTask;
+
+    TaskNode(string name, int priority) {
+        this->taskName = name;
+        this->taskPriority = priority;
+        this->nextTask = NULL;
+    }
 };
 
-class PriorityQueue {
+class TaskScheduler {
 private:
-    Node* head; // Head of the priority queue
+    TaskNode* topTask;
 
 public:
-    PriorityQueue() {
-        head = NULL;
+    TaskScheduler() {
+        topTask = NULL;
     }
 
-    // Function to push (insert) an element into the priority queue
-    void push(int data, int priority) {
-        Node* newNode = new Node();
-        newNode->data = data;
-        newNode->priority = priority;
-
-        // If the queue is empty or the new element has higher priority
-        if (head == NULL || newNode->priority < head->priority) {
-            newNode->next = head;
-            head = newNode;
+    void addTask(string name, int priority) {
+        TaskNode* newTask = new TaskNode(name, priority);
+        if (topTask == NULL || newTask->taskPriority > topTask->taskPriority) {
+            newTask->nextTask = topTask;
+            topTask = newTask;
         } else {
-            Node* temp = head;
-
-            // Find the position to insert based on priority
-            while (temp->next != NULL && temp->next->priority <= newNode->priority) {
-                temp = temp->next;
+            TaskNode* current = topTask;
+            while (current->nextTask != NULL && current->nextTask->taskPriority >= newTask->taskPriority) {
+                current = current->nextTask;
             }
-
-            newNode->next = temp->next;
-            temp->next = newNode;
+            newTask->nextTask = current->nextTask;
+            current->nextTask = newTask;
         }
     }
 
-    // Function to pop (remove) the element with the highest priority from the queue
-    void pop() {
-        if (head == NULL) {
-            cout << "Priority Queue is empty." << endl;
+    void processTask() {
+        if (topTask == NULL) {
+            cout << "No tasks to process." << endl;
         } else {
-            Node* temp = head;
-            head = head->next;
-            delete temp;
+            TaskNode* toProcess = topTask;
+            cout << "Processing: " << toProcess->taskName << " with priority " << toProcess->taskPriority << endl;
+            topTask = topTask->nextTask;
+            delete toProcess;
         }
     }
 
-    // Function to peek (get) the element with the highest priority without removing it
-    int peek() {
-        if (head == NULL) {
-            cout << "Priority Queue is empty." << endl;
-            return -1; // You can choose a different value to indicate an error.
-        }
-        return head->data;
-    }
-
-    void printQueue(){
-        if (head == NULL) {
-                    cout << "Priority Queue is empty." << endl;
-                    return;
-                }
-                
-                Node* current = head;
-                cout << "Priority Queue: ";
-                while (current != NULL) {
-                    cout << current->data << " ";
-                    current = current->next;
-                }
-                cout << endl;
-        
+    bool hasTasks() {
+        return topTask != NULL;
     }
 };
 
-int random() {
-    return rand() % 10 + 1;
-}
-
-
 int main() {
-    PriorityQueue priorityQueue;
-    int arr[5] = {10, 20, 30, 40, 50};
+    TaskScheduler scheduler;
 
-    for (int i = 0; i < 5; i++){
-        priorityQueue.push(arr[i], random());
+    srand(time(0));
+
+    string tasks[] = {"TaskA", "TaskB", "TaskC", "TaskD", "TaskE"};
+    int totalTasks = sizeof(tasks) / sizeof(tasks[0]);
+
+    for (int i = 0; i < totalTasks; i++) {
+        int randomPriority = rand() % 10 + 1;
+        scheduler.addTask(tasks[i], randomPriority);
+        cout << "Added: " << tasks[i] << " with priority " << randomPriority << endl;
     }
-    
 
-    // Peek and print the element with the highest priority
-    priorityQueue.printQueue();
+    cout << "\nOrder of Task Execution:" << endl;
+    while (scheduler.hasTasks()) {
+        scheduler.processTask();
+    }
 
     return 0;
 }
