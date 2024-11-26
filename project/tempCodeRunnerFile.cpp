@@ -1,0 +1,2 @@
+
+            removeFromNonLeaf(idx);
