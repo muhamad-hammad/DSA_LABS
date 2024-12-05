@@ -54,6 +54,17 @@ void buildMaxHeap(int arr[], int N) {
     }
 }
 
+int* mergeHeaps(int arr1[], int N1, int arr2[], int N2) {
+    int* mergedArr = new int[N1 + N2];
+    for (int i = 0; i < N1; i++) {
+        mergedArr[i] = arr1[i];
+    }
+    for (int i = 0; i < N2; i++) {
+        mergedArr[N1 + i] = arr2[i];
+    }
+    return mergedArr;
+}
+
 void deleteRoot(int arr[], int& N) {
     arr[0] = arr[N - 1];
     N = N - 1;
