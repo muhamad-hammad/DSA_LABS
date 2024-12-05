@@ -121,17 +121,21 @@ void BTreeNode::traverse()
     if (!leaf)
         C[i]->traverse();
 }
-
 void BTreeNode::remove(int id)
 {
     int idx = findKey(id);
 
+    // Key is present in this node
     if (idx < n && keys[idx].id == id)
     {
-        if (leaf){
-            removeFromLeaf(idx);}
-        else{
-            removeFromNonLeaf(idx);}
+        if (leaf)
+        {
+            removeFromLeaf(idx);
+        }
+        else
+        {
+            removeFromNonLeaf(idx);
+        }
     }
     else
     {
@@ -141,16 +145,87 @@ void BTreeNode::remove(int id)
             return;
         }
 
+        // Determine if the key might be in the last child
         bool flag = (idx == n);
 
+        // Fill the child if it has fewer than `t` keys
         if (C[idx]->n < t)
+        {
             fill(idx);
+        }
 
+        // Key might have moved to the previous child after filling
         if (flag && idx > n)
+        {
             C[idx - 1]->remove(id);
+        }
         else
+        {
             C[idx]->remove(id);
+        }
     }
+}
+
+void BTreeNode::fill(int idx)
+{
+    if (idx != 0 && C[idx - 1]->n >= t)
+    {
+        borrowFromPrev(idx);
+    }
+    else if (idx != n && C[idx + 1]->n >= t)
+    {
+        borrowFromNext(idx);
+    }
+    else
+    {
+        if (idx != n)
+        {
+            merge(idx);
+        }
+        else
+        {
+            merge(idx - 1);
+        }
+    }
+}
+
+void BTreeNode::merge(int idx)
+{
+    BTreeNode *child = C[idx];
+    BTreeNode *sibling = C[idx + 1];
+
+    // Merge keys[idx] into child
+    child->keys[t - 1] = keys[idx];
+
+    // Copy keys from sibling to child
+    for (int i = 0; i < sibling->n; ++i)
+    {
+        child->keys[i + t] = sibling->keys[i];
+    }
+
+    // Copy children pointers from sibling to child
+    if (!child->leaf)
+    {
+        for (int i = 0; i <= sibling->n; ++i)
+        {
+            child->C[i + t] = sibling->C[i];
+        }
+    }
+
+    // Move keys and children of current node
+    for (int i = idx + 1; i < n; ++i)
+    {
+        keys[i - 1] = keys[i];
+    }
+    for (int i = idx + 2; i <= n; ++i)
+    {
+        C[i - 1] = C[i];
+    }
+
+    child->n += sibling->n + 1;
+    n--;
+
+    delete sibling;
 }
 
 int BTreeNode::findKey(int id)
@@ -206,20 +281,6 @@ Record BTreeNode::getSuccessor(int idx)
     return cur->keys[0];
 }
 
-void BTreeNode::fill(int idx)
-{
-    if (idx != 0 && C[idx - 1]->n >= t)
-        borrowFromPrev(idx);
-    else if (idx != n && C[idx + 1]->n >= t)
-        borrowFromNext(idx);
-    else
-    {
-        if (idx != n)
-            merge(idx);
-        else
-            merge(idx - 1);
-    }
-}
 
 // Search key in subtree rooted with this node
 BTreeNode *BTreeNode::search(int id)
@@ -338,34 +399,6 @@ void BTreeNode::borrowFromNext(int idx)
 
     child->n += 1;
     sibling->n -= 1;
-}
-
-void BTreeNode::merge(int idx)
-{
-    BTreeNode *child = C[idx];
-    BTreeNode *sibling = C[idx + 1];
-
-    child->keys[t - 1] = keys[idx];
-
-    for (int i = 0; i < sibling->n; ++i)
-        child->keys[i + t] = sibling->keys[i];
-
-    if (!child->leaf)
-    {
-        for (int i = 0; i <= sibling->n; ++i)
-            child->C[i + t] = sibling->C[i];
-    }
-
-    for (int i = idx + 1; i < n; ++i)
-        keys[i - 1] = keys[i];
-
-    for (int i = idx + 2; i <= n; ++i)
-        C[i - 1] = C[i];
-
-    child->n += sibling->n + 1;
-    n--;
-
-    delete sibling;
 }
 
 // BTree Class
@@ -533,7 +566,7 @@ public:
                 current = current->right;
             }
         }
-        cout << "Record not found" << endl;
+        //cout << "Record not found" << endl;
     }
 
     BSTNode *findMin(BSTNode *node)
@@ -645,7 +678,7 @@ public:
                 current = current->right;
             }
         }
-        cout << "Record not found" << endl;
+        //cout << "Record not found" << endl;
     }
 };
 
@@ -870,7 +903,7 @@ public:
                 current = current->right;
             }
         }
-        cout << "Record not found" << endl;
+        //cout << "Record not found" << endl;
     }
 };
 
@@ -893,7 +926,7 @@ void measurePerformanceBST(BST &bst, Record *data, int dataSize, int testSize)
     double insertTime = chrono::duration_cast<chrono::microseconds>(endInsert - startInsert).count() / 1000.0;
 
     auto startSearch = chrono::high_resolution_clock::now();
-    for (int i = 0; i < testSize; ++i)
+    for (int i = 0; i < 20; ++i)
     {
         bst.search(data[i].getId());
     }
@@ -909,7 +942,7 @@ void measurePerformanceBST(BST &bst, Record *data, int dataSize, int testSize)
     double deleteTime = chrono::duration_cast<chrono::microseconds>(endDelete - startDelete).count() / 1000.0;
 
     cout << "Insertion time for " << testSize << " records: " << insertTime << " ms" << endl;
-    cout << "Search time for " << testSize << " queries: " << searchTime << " ms" << endl;
+    cout << "Search time for 20 queries: " << searchTime << " ms" << endl;
     cout << "Deletion time for " << testSize << " records: " << deleteTime << " ms" << endl;
 }
 
@@ -932,7 +965,7 @@ void measurePerformanceAVL(AVL &avl, Record *data, int dataSize, int testSize)
     double insertTime = chrono::duration_cast<chrono::microseconds>(endInsert - startInsert).count() / 1000.0;
 
     auto startSearch = chrono::high_resolution_clock::now();
-    for (int i = 0; i < testSize; ++i)
+    for (int i = 0; i < 20; ++i)
     {
         avl.search(data[i].getId());
     }
@@ -949,7 +982,7 @@ void measurePerformanceAVL(AVL &avl, Record *data, int dataSize, int testSize)
 
     cout << "Successfully done " << testSize << " insertions in AVL tree." << endl;
     cout << "Insertion time for " << testSize << " records: " << insertTime << " ms" << endl;
-    cout << "Search time for " << testSize << " queries: " << searchTime << " ms" << endl;
+    cout << "Search time for 20 queries: " << searchTime << " ms" << endl;
     cout << "Deletion time for " << testSize << " records: " << deleteTime << " ms" << endl;
 }
 
@@ -984,13 +1017,13 @@ void measurePerformanceBTree(BTree &btree, Record *data, int dataSize, int testS
 
     // Measure search performance
     auto startSearch = chrono::high_resolution_clock::now();
-    for (int i = 0; i < testSize; ++i)
+    for (int i = 0; i < 20; ++i)
     {
         btree.search(data[i].getId());
     }
     auto endSearch = chrono::high_resolution_clock::now();
     double searchTime = chrono::duration_cast<chrono::microseconds>(endSearch - startSearch).count() / 1000.0;
-    cout << "Search time for " << testSize << " queries: " << searchTime << " ms" << endl;
+    cout << "Search time for  20  queries: " << searchTime << " ms" << endl;
 
     // Measure deletion performance
     auto startDelete = chrono::high_resolution_clock::now();
@@ -1008,17 +1041,32 @@ void measurePerformanceBTree(BTree &btree, Record *data, int dataSize, int testS
 int main()
 {
     srand(time(0));
-    int dataSizearr[3] = {1000, 5000, 10000};
-    int testSize = 999;
+    int dataSize;
+    int testSize;
 
     // Initialize tree objects
     BST bst;
     AVL avl;
     BTree btree(3); // Example: B-Tree of order 3
-    for (int i = 0; i < 3; i++)
-    {
-        int dataSize = dataSizearr[i];
         // Generate records
+    cout << "Enter the data sizee: 1000, 10000, 50000" << endl;
+    cin >> dataSize;
+    switch (dataSize)
+    {
+    case 1000:
+        testSize = 500;
+        break;
+    case 10000:
+        testSize = 5000;
+        break;
+    case 50000:
+        testSize = 10000;
+        break;
+    
+    default:
+        break;
+    }
+
         Record *data = generateData(dataSize);
 
         // Measure performance for each tree
@@ -1027,7 +1075,6 @@ int main()
         measurePerformanceBTree(btree, data, dataSize, testSize);
 
         delete[] data; // Clean up
-    }
     return 0;
 }
 // there is some error in the deletion part of btree so i have commented it out
